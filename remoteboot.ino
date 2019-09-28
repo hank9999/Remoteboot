@@ -13,7 +13,7 @@ const char* password = STAPSK;
 String check_api = "http://example.com/remote.php?boot=check";  //replace "example.com" by your address
 String received_api = "http://example.com/remote.php?boot=received";  //replace "example.com" by your address
 IPAddress computer_ip(255, 255, 255, 255);
-byte mac[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }; 
+byte mac[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };   //replace "0x00, 0x00, 0x00, 0x00, 0x00, 0x00"
 
 ESP8266WiFiMulti WiFiMulti;
 WiFiUDP UDP;
