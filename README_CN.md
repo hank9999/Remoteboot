@@ -1,2 +1,14 @@
 # 远程启动
-使用ESP8266/ESP32远程启动计算机
+使用ESP8266/ESP32远程启动计算机  
+这个项目有无公网ip均可  
+但是你需要搭建一个网站  
+## 环境要求
+- **PHP >= 7.0**
+- **MySQL >= 5.5**
+
+## 快速开始
+1.下载 [最新发行版](https://github.com/hank9999/Remoteboot/releases), 解压并把 `remote.php` 放在网站根目录  
+2.配置在 `remote.php` 文件中的数据库信息  
+3.访问 `http://你的域名/remote.php?install=yes`  
+4.配置你的WIFI,MAC,网站地址在 `remoteboot.ino` 中,并且下载到ESP8266/ESP32中  
+5.完成  
