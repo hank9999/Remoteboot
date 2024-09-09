@@ -10,6 +10,8 @@ Configure your WIFI, TOKEN, component ID, and download them to ESP8266/ESP32
 By default, `D3` is the POWER_ON button pin for the board, and `D2` is the pin for turning on with power and off without power  
 The LED will blink when reporting data or executing button operations, using `LED_BUILTIN` to define the LED  
 All used pins can be globally replaced  
+
+>Note: `D3` must be a pin with high level(pulled up) default like GPIO0 (my board D3) in ESP8266 and `D2` must be free-floating like GPIO4 (my board D2) in ESP8266, more information [here](https://forum.arduino.cc/t/esp8266-using-gpio0-gpio2-gpio15-for-input-or-output/1263609/3)
 ```
 char auth[] = "Auth-Token";  //replace "Auth-Token" to Your Blinker TOKEN
 char ssid[] = "Your-SSID";  //replace "Your-SSID" to Your-SSID

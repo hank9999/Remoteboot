@@ -9,6 +9,8 @@
 默认 `D3` 为 主板 POWER_ON 按键引脚, `D2` 为任意开机带电 关机断电引脚  
 上报数据、执行按键操作均会闪烁LED, 使用 `LED_BUILTIN` 定义LED  
 所有使用引脚均可全局替换  
+
+>注意：`D3` 必须是默认为高电平（上拉）的引脚，如 ESP8266 中的 GPIO0（我板子是 D3），而 `D2` 必须是自由浮动的，如 ESP8266 中的 GPIO4（我板子是 D2），更多参考[这里](https://forum.arduino.cc/t/esp8266-using-gpio0-gpio2-gpio15-for-input-or-output/1263609/3)
 ```
 char auth[] = "Auth-Token";  //replace "Auth-Token" to Your Blinker TOKEN
 char ssid[] = "Your-SSID";  //replace "Your-SSID" to Your-SSID
