@@ -1,74 +1,99 @@
+//
+// Created by hank9999 on 24-9-8.
+//
+
+#include "main.h"
+
+#define BLINKER_PRINT Serial
+#define BLINKER_WIFI
+// #define BLINKER_WITH_SSL
+
 #include <Arduino.h>
-#include <ESP8266WiFi.h>
-#include <ESP8266WiFiMulti.h>
-#include <ESP8266HTTPClient.h>
-#include <WiFiClient.h>
-#include <WakeOnLan.h>
+#include <Blinker.h>
 
-#define STASSID "Your-SSID"  //replace "Your-SSID" by Your-SSID
-#define STAPSK  "Your-Password"  //replace "Your-Password" by Your-Password
+char auth[] = "Auth-Token";  //replace "Auth-Token" to Your Blinker TOKEN
+char ssid[] = "Your-SSID";  //replace "Your-SSID" to Your-SSID
+char pswd[] = "Your-Password"  //replace "Your-Password" to Your-Password
 
-const char* ssid = STASSID;
-const char* password = STAPSK;
-String api_address = "example.com";  //replace "example.com" by your address
-String api_id = "Your_ID";  //replace "Your_ID" by your ID
+BlinkerButton BootButton(const_cast<char*>("btn-xx1"));  //replace "btn-xx1" to your blinker boot button id
+BlinkerButton ForceShutdownButton(const_cast<char*>("btn-xx2"));  //replace "btn-xx2" to your blinker force-shutdown button id
+BlinkerText StatusText(const_cast<char*>("tex-xx3"));  //replace "tex-xx3" to your blinker status text id
+int D2_Status = 0x00;
+int counter = 0;
 
-String check_api = "http://" + api_address + "/remote.php?id=" + api_id + "&command=check";  // only http
-String received_api = "http://" + api_address + "/remote.php?id=" + api_id + "&command=boot_ok"; // only http
-IPAddress computer_ip(255, 255, 255, 255);
-byte mac[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };   //replace "0x00, 0x00, 0x00, 0x00, 0x00, 0x00"
+void BootButtonCallback(const String & state) {
+  BLINKER_LOG("BootButton event, state: ", state);
+  digitalWrite(LED_BUILTIN, LOW);
+  digitalWrite(D3, LOW);
+  Serial.println("D3 LOW");
+  delay(1000);
+  digitalWrite(D3, HIGH);
+  Serial.println("D3 HIGH");
+  digitalWrite(LED_BUILTIN, HIGH);
+}
 
-ESP8266WiFiMulti WiFiMulti;
-WiFiUDP UDP;
+void ForceShutdownButtonCallback(const String & state) {
+  BLINKER_LOG("ForceShutdownButton event, state: ", state);
+  digitalWrite(LED_BUILTIN, LOW);
+  digitalWrite(D3, LOW);
+  Serial.println("D3 LOW");
+  delay(15000);
+  digitalWrite(D3, HIGH);
+  Serial.println("D3 HIGH");
+  digitalWrite(LED_BUILTIN, HIGH);
+}
+
+void UpdateStatus() {
+  if (digitalRead(D2) == HIGH) {
+    StatusText.print("On");
+    Serial.println("status: on");
+  } else {
+    StatusText.print("Off");
+    Serial.println("status: off");
+  }
+}
+
+void D2_Callback() {
+  if (digitalRead(D2) != D2_Status) {
+    UpdateStatus();
+    D2_Status = digitalRead(D2);
+    digitalWrite(LED_BUILTIN, LOW);
+  }
+}
 
 void setup() {
   Serial.begin(115200);
+  Serial.println("\nUART is ready!");
 
-  Serial.println();
-  Serial.println();
+  pinMode(D3, OUTPUT);
+  digitalWrite(D3, HIGH);
+  Serial.println("D3 Pin is ready!");
 
-  WiFi.mode(WIFI_STA);
-  WiFiMulti.addAP(ssid, password);
-  Serial.println("WIFI Connecting");
-  while (WiFiMulti.run() != WL_CONNECTED) {
-    Serial.print(".");
-    delay(500);
-  }
-  Serial.println("");
-  Serial.println("WIFI Connected");
+  pinMode(D2, INPUT);
+  Serial.println("D2 Pin is ready!");
+  D2_Status = digitalRead(D2);
+
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);
+  Serial.println("LED_BUILTIN Pin is ready!");
+
+#if defined(BLINKER_PRINT)
+  BLINKER_DEBUG.stream(BLINKER_PRINT);
+#endif
+
+  Blinker.begin(auth, ssid, pswd);
+  BootButton.attach(BootButtonCallback);
+  ForceShutdownButton.attach(ForceShutdownButtonCallback);
+  UpdateStatus();
 }
 
 void loop() {
-
-  if ((WiFiMulti.run() == WL_CONNECTED)) {
-    WiFiClient client;
-    HTTPClient http; 
-    if (http.begin(client, check_api)) {  // HTTP
-      int httpCode = http.GET();
-      if (httpCode > 0) {
-        String payload = http.getString();
-        Serial.print(httpCode);
-        Serial.print(", check:  ");
-        Serial.println(payload);
-        if(payload == "{\"code\":10000,\"message\":\"Check Success\",\"status\":\"1\"}") {
-          WakeOnLan::sendWOL(computer_ip, UDP, mac, sizeof mac);
-          http.begin(client, received_api);
-          int httpCode2 = http.GET();
-          String payload2 = http.getString();
-          Serial.print(httpCode2);
-          Serial.print(", ");
-          Serial.println(payload2);
-          Serial.println("");
-          http.end();
-        }
-      } else {
-        Serial.printf("HTTP Failed, error: %s\n", http.errorToString(httpCode).c_str());
-      }
-      http.end();
-    } else {
-      Serial.printf("Unable to connect\n");
-    }
+  Blinker.run();
+  digitalWrite(LED_BUILTIN, HIGH);
+  D2_Callback();
+  counter += 1;
+  if (counter >= 100) {
+    counter = 0;
+    UpdateStatus();
   }
-  delay(1000);
-  
 }
